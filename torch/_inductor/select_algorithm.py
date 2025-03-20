@@ -16,7 +16,7 @@ import textwrap
 import time
 from concurrent.futures import as_completed, ThreadPoolExecutor
 from io import StringIO
-from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+from typing import Any, Callable, Optional, Tuple, TYPE_CHECKING, Union
 from typing_extensions import Self
 from unittest.mock import patch
 
@@ -1062,6 +1062,59 @@ class TritonTemplate(KernelTemplate):
         self.all_templates[name] = self
         self.debug = debug
 
+    def generate_and_load(
+        self, kernel_options, kernel_name, fake_out, workspace_arg, layout, input_nodes
+    ):
+        """Generate the python code and load it into the current process"""
+        kwargs = kernel_options["meta"]
+
+        with (
+            patch.object(V.graph, "get_dtype", self._fake_get_dtype(fake_out)),
+            V.graph.set_current_device(layout.device),
+            TritonTemplateKernel(
+                kernel_name=kernel_name,
+                output_node=fake_out,
+                workspace_arg=workspace_arg,
+                use_jit=False,
+                **kernel_options,
+            ) as kernel,
+        ):
+            try:
+                template = kernel.render(self.template, kwargs)
+                with kernel.set_subgraph_body("<STORE_OUTPUT>"):
+                    code = template.finalize_all()
+            except ZeroDivisionError:
+                # TODO(nmacchioni): fix sympy division by zero
+                return None
+            if self.debug:
+                print("Generated Code:\n", code)
+            extra = (
+                "-".join(
+                    [
+                        *[
+                            f"{kwarg}={repr(kwargs[kwarg])}"
+                            for kwarg in sorted(kwargs.keys())
+                        ],
+                        f"num_stages={kernel_options['num_stages']}",
+                        f"num_warps={kernel_options['num_warps']}",
+                    ]
+                )
+                + "-"
+            )
+
+            mod = PyCodeCache.load(code, extra)
+
+            input_call_args = tuple(kernel.args.input_buffers.keys())
+            expected_input_args = tuple(unique(x.get_name() for x in input_nodes))
+            return (
+                mod,
+                extra,
+                input_call_args,
+                expected_input_args,
+                kernel.args.sizevars.keys(),
+                kernel.prologue_supported_inputs.copy(),
+            )
+
     def generate(  # type: ignore[override]
         self,
         input_nodes,
@@ -1134,45 +1187,18 @@ class TritonTemplate(KernelTemplate):
             "subgraphs": subgraphs,
         }
 
-        with (
-            patch.object(V.graph, "get_dtype", self._fake_get_dtype(fake_out)),
-            V.graph.set_current_device(layout.device),
-            TritonTemplateKernel(
-                kernel_name=kernel_name,
-                output_node=fake_out,
-                workspace_arg=workspace_arg,
-                use_jit=False,
-                **kernel_options,
-            ) as kernel,
-        ):
-            try:
-                template = kernel.render(self.template, kwargs)
-                with kernel.set_subgraph_body("<STORE_OUTPUT>"):
-                    code = template.finalize_all()
-            except ZeroDivisionError:
-                # TODO(nmacchioni): fix sympy division by zero
-                return None
-            if self.debug:
-                print("Generated Code:\n", code)
-            extra = (
-                "-".join(
-                    [
-                        *[
-                            f"{kwarg}={repr(kwargs[kwarg])}"
-                            for kwarg in sorted(kwargs.keys())
-                        ],
-                        f"num_stages={num_stages}",
-                        f"num_warps={num_warps}",
-                    ]
-                )
-                + "-"
-            )
-            mod = PyCodeCache.load(code, extra)
-
-        input_call_args = tuple(kernel.args.input_buffers.keys())
+        (
+            mod,
+            extra,
+            input_call_args,
+            expected_input_args,
+            args_sizevars_keys,
+            prologue_supported_inputs,
+        ) = self.generate_and_load(
+            kernel_options, kernel_name, fake_out, workspace_arg, layout, input_nodes
+        )
 
         # We expect the input_buffer order to be [*input_nodes, *captured_buffers]
-        expected_input_args = tuple(unique(x.get_name() for x in input_nodes))
         assert input_call_args[: len(expected_input_args)] == expected_input_args, (
             input_call_args,
             expected_input_args,
@@ -1180,7 +1206,7 @@ class TritonTemplate(KernelTemplate):
 
         full_input_nodes = tuple([V.graph.get_buffer(k) for k in input_call_args])
         extra_args = V.graph.sizevars.size_hints(
-            map(sympy.expand, tuple(kernel.args.sizevars.keys())),
+            map(sympy.expand, tuple(args_sizevars_keys)),
             fallback=config.unbacked_symint_fallback,
         )
 
@@ -1229,7 +1255,6 @@ class TritonTemplate(KernelTemplate):
             output_tensor_meta=TensorMeta.from_irnodes(layout),
             workspace_arg=workspace_arg,
         )
-
         return TritonTemplateCaller(
             kernel_hash_name,
             full_input_nodes,
@@ -1252,7 +1277,7 @@ class TritonTemplate(KernelTemplate):
             },
             mutated_inputs=mutated_inputs,
             workspace_arg=workspace_arg,
-            allowed_prologue_inps=kernel.prologue_supported_inputs.copy(),
+            allowed_prologue_inps=prologue_supported_inputs,
         )
 
 
