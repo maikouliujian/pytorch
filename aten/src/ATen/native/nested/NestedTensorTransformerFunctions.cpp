@@ -54,7 +54,7 @@ inline void check_nested_tensor_matrix_constraints(
       dense_size);
 }
 } // namespace
-
+//todo linear计算
 Tensor nested_linear(
     const Tensor& input,
     const Tensor& weight,

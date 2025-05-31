@@ -477,7 +477,7 @@ MISC_GETTER_DEFS = {
 # TODO: This is probably not exhaustive, but it's a start
 UNTRACEABLE_FUNCTIONS = VIEW_FUNCTIONS
 
-
+# todo
 def get_infos_with_derivatives_list(
     differentiability_infos: dict[FunctionSchema, dict[str, DifferentiabilityInfo]],
 ) -> list[DifferentiabilityInfo]:

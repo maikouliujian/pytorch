@@ -102,6 +102,7 @@ class Linear(Module):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
+        # todo 这里weight是[out_features, in_features]
         self.weight = Parameter(
             torch.empty((out_features, in_features), **factory_kwargs)
         )
@@ -122,6 +123,7 @@ class Linear(Module):
             init.uniform_(self.bias, -bound, bound)
 
     def forward(self, input: Tensor) -> Tensor:
+        # todo 线性计算
         return F.linear(input, self.weight, self.bias)
 
     def extra_repr(self) -> str:

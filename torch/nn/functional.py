@@ -2305,7 +2305,7 @@ def hardsigmoid(input: Tensor, inplace: bool = False) -> Tensor:
         return torch._C._nn.hardsigmoid_(input)
     return torch._C._nn.hardsigmoid(input)
 
-
+# todo 在 PyTorch 中，linear = _add_docstr(torch._C._nn.linear, ...) 这一行代码是连接 Python API 与底层 C++ 实现的关键桥梁。
 linear = _add_docstr(
     torch._C._nn.linear,
     r"""

@@ -1,3 +1,5 @@
+
+# todo PyTorch的C++签名接口可参考:
 # See README.md in this directory for more guidance
 
 # *********NB: _cast_* operators are DEPRECATED and will be removed
@@ -3328,12 +3330,13 @@
     SparseCPU, SparseCUDA: nan_to_num_sparse_out
   tags: pointwise
 
+# todo 注册
 - func: linear(Tensor input, Tensor weight, Tensor? bias=None) -> Tensor
   python_module: nn
   dispatch:
-    CompositeImplicitAutograd: linear
-    NestedTensorCPU, NestedTensorCUDA: nested_linear
-    MPS: _mps_linear
+    CompositeImplicitAutograd: linear # todo 实现位置：build/aten/src/ATen/CompositeImplicitAutograd.cpp ？？？？？？
+    NestedTensorCPU, NestedTensorCUDA: nested_linear # todo 实现位置：aten/src/ATen/native/nested/nested_linear.cpp
+    MPS: _mps_linear # todo 实现位置：aten/src/ATen/native/mps/operations/Linear.mm
 
 - func: linear_backward(Tensor self, Tensor grad_output, Tensor weight, bool[3] output_mask) -> (Tensor, Tensor, Tensor)
   dispatch:

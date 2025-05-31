@@ -10,6 +10,7 @@ from torch.types import _bool, _device, _dtype, _int, _size
 
 ${c_nn_function_hints}
 
+# todo
 # Defined in aten/src/ATen/native/mkldnn/Linear.cpp
 def mkldnn_linear(input: Tensor, weight: Tensor, bias: Optional[Tensor]) -> Tensor: ...
 

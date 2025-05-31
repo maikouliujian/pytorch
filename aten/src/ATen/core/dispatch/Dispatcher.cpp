@@ -9,6 +9,13 @@
 #include <c10/util/static_tracepoint.h>
 #endif
 
+// 这个文件是ATen的调度器，负责管理所有注册的运算符（operators）和它们的实现（implementations）。
+// 它提供了以下功能：
+// 1. 查找和注册运算符
+// 2. 等待运算符定义和实现
+// 3. 管理运算符的注册和注销
+// 4. 处理运算符的Python模块注册
+// 5. 管理运算符的实现注册
 namespace c10 {
 
 #ifdef FBCODE_CAFFE2

@@ -2682,7 +2682,7 @@ def batch_isend_irecv(p2p_op_list: List[P2POp]) -> List[Work]:
                 reqs.append(work)
         return reqs
 
-
+# todo 广播数据
 @_exception_logger
 def broadcast(
     tensor: torch.Tensor,
@@ -2723,6 +2723,7 @@ def broadcast(
     opts.rootRank = group_src
     opts.rootTensor = 0
     opts.asyncOp = async_op
+    # todo 广播
     work = group.broadcast([tensor], opts)
     if async_op:
         return work
