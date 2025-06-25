@@ -447,6 +447,7 @@ class Module:
     the change."""
 
     training: bool
+    # todo 核心变量，记录<权重key(子模块), Parameter(包含权重值)>
     _parameters: Dict[str, Optional[Parameter]]
     _buffers: Dict[str, Optional[Tensor]]
     _non_persistent_buffers_set: Set[str]
@@ -469,6 +470,7 @@ class Module:
     _load_state_dict_pre_hooks: Dict[int, Callable]
     _state_dict_pre_hooks: Dict[int, Callable]
     _load_state_dict_post_hooks: Dict[int, Callable]
+    #todo 核心变量，记录<子模块, Module>
     _modules: Dict[str, Optional["Module"]]
     call_super_init: bool = False
     _compiled_call_impl: Optional[Callable] = None
@@ -1928,7 +1930,8 @@ class Module:
         raise AttributeError(
             f"'{type(self).__name__}' object has no attribute '{name}'"
         )
-
+    # todo 核心方法
+    # todo
     def __setattr__(self, name: str, value: Union[Tensor, "Module"]) -> None:
         def remove_from(*dicts_or_sets):
             for d in dicts_or_sets:
@@ -1950,6 +1953,7 @@ class Module:
                 self._modules,
                 self._non_persistent_buffers_set,
             )
+            # todo 注册Parameter
             self.register_parameter(name, value)
         elif params is not None and name in params:
             if value is not None:
@@ -1975,6 +1979,7 @@ class Module:
                     output = hook(self, name, value)
                     if output is not None:
                         value = output
+                # todo 注册modules
                 modules[name] = value
             elif modules is not None and name in modules:
                 if value is not None:
