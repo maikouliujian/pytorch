@@ -693,6 +693,7 @@ Tensor _safe_softmax(
 //     S: Source sequence length
 //     L: Target sequence length
 //     E: Embedding dimension
+//todo scaled_dot_product_attention的实现
 Tensor scaled_dot_product_attention(
     const Tensor& query_,
     const Tensor& key,
