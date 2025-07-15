@@ -219,7 +219,7 @@ void CUDAGraph::capture_end() {
     TORCH_WARN("DEBUG: TORCH_CUDAGRAPHS_DEBUG_PATH detected. graph_ will not be freed until debug_dump is called.");
   }
 }
-
+//todo cuda graph重放！！！！！！
 void CUDAGraph::replay() {
   TORCH_CHECK(has_graph_exec_,
               "Called CUDAGraph::replay without a preceding successful capture.");
@@ -231,6 +231,7 @@ void CUDAGraph::replay() {
     generator_state->replay_prologue(wholegraph_increments);
   }
   // graph_exec_ may be replayed in any stream.
+  //todo 启动cudaGraphLaunch
   AT_CUDA_CHECK(cudaGraphLaunch(graph_exec_, at::cuda::getCurrentCUDAStream()));
 
   int version = 0;
