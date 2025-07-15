@@ -77,6 +77,7 @@ void CUDAGraph::register_generator_state(const at::Generator& generator) {
   cuda_gen->register_graph(this);
 }
 
+//todo 开始捕捉！！！！！！
 void CUDAGraph::capture_begin(MempoolId_t pool/*=0*/, cudaStreamCaptureMode capture_mode) {
   TORCH_CHECK(!has_graph_exec_,
               "This CUDAGraph instance already owns a captured graph. "
@@ -85,6 +86,7 @@ void CUDAGraph::capture_begin(MempoolId_t pool/*=0*/, cudaStreamCaptureMode capt
   // default generator is always registered
   auto* gen = get_generator_or_default<CUDAGeneratorImpl>(
       std::nullopt, cuda::detail::getDefaultCUDAGenerator());
+  //todo 注册当前cuda graph
   gen->register_graph(this);
 
   for (auto& [generator_state, wholegraph_increments] :

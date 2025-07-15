@@ -24,7 +24,7 @@ void THCPGraph_init(PyObject* module) {
   auto torch_C_m = py::handle(module).cast<py::module>();
 
   torch_C_m.def("_graph_pool_handle", &::at::cuda::graph_pool_handle);
-
+  //todo python和c++绑定逻辑！！！！！！
   shared_ptr_class_<::at::cuda::CUDAGraph>(torch_C_m, "_CUDAGraph")
       .def(py::init<>())
       .def(

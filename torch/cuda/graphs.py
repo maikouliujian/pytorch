@@ -43,6 +43,7 @@ def graph_pool_handle():
 
 
 # Python shim helps Sphinx process docstrings more reliably.
+# todo CUDAGraph！！！！！！
 class CUDAGraph(torch._C._CUDAGraph):
     r"""Wrapper around a CUDA graph.
 
@@ -52,7 +53,7 @@ class CUDAGraph(torch._C._CUDAGraph):
 
     def __new__(cls):
         return super().__new__(cls)
-
+    # todo 开始捕捉cuda graph
     def capture_begin(self, pool=None, capture_error_mode="global"):
         r"""Begin capturing CUDA work on the current stream.
 
@@ -71,7 +72,7 @@ class CUDAGraph(torch._C._CUDAGraph):
                 unless you're familiar with `cudaStreamCaptureMode <https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__STREAM.html#group__CUDART__STREAM_1g9d0535d93a214cbf126835257b16ba85>`_
         """  # noqa: B950
         super().capture_begin(pool=pool, capture_error_mode=capture_error_mode)
-
+    # todo 结束捕捉cuda graph
     def capture_end(self):
         r"""End CUDA graph capture on the current stream.
 
@@ -82,7 +83,7 @@ class CUDAGraph(torch._C._CUDAGraph):
         which call ``capture_end`` internally.
         """
         super().capture_end()
-
+    # todo 重放cuda graph
     def replay(self):
         r"""Replay the CUDA work captured by this graph."""
         super().replay()
